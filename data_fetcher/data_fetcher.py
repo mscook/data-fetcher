@@ -82,13 +82,16 @@ def parse_meta_data(metadata_list):
             print "Needs paired read files"
             sys.exit(1)
     return rename, ftp_urls
-        
 
 
-def print_data_stats():
+def print_data_stats(urls):
     """
+    Calculate number of read *pairs*that will be donwloaded
+
+    :param urls: list of ftp urls
     """
-    pass
+    # Assume paired
+    print "Will download paired reads for %i strains" % (len(urls)/2)
 
 
 def download_files():
@@ -103,13 +106,10 @@ def core(args):
 
     :param args: an argparse object
     """
-    # Parse the metadata
-    # Print some statistics
     # Download the fastq
     metadata = get_required_metadata(args.study_id)
     rename, urls  = parse_meta_data(metadata)
-    print rename
-    print urls
+    print_data_stats(urls)
 
 
 if __name__ == '__main__':
