@@ -17,13 +17,29 @@
 A tool to programatically mass download data from the ENA 
 """
 
-import sys, argparse
+import sys, argparse, urllib2
 
 
-def get_required_metadata():
+def get_required_metadata(study_id):
     """
+    Fetch a txt document containing useful data Given a valid SRA/ENA study id
+    
+    :param study_id: a valid SRA/ENA study id
+    :type study_id: string
+    
+    :returns: the txt formatted metadata info as a string
     """
-    pass
+    BASE = ("http://www.ebi.ac.uk/ena/data/warehouse/filereport?accession="
+            "CURRENT&result=read_run&fields=study_accession,"
+            "secondary_study_accession,sample_accession,"
+            "secondary_sample_accession,experiment_accession,run_accession"
+            ",scientific_name,instrument_model,library_layout,fastq_ftp"
+            ",fastq_galaxy,submitted_ftp,submitted_galaxy,col_tax_id,"
+            "col_scientific_name,sra_ftp,sra_galaxy")
+    BASE = BASE.replace('CURRENT', study_id)
+    response = urllib2.urlopen(BASE)
+    # Turn into a list
+    return response.read().split('\n')
 
 def parse_meta_data():
     """
@@ -49,11 +65,11 @@ def core(args):
 
     :param args: an argparse object
     """
-    # Download the required metadata
     # Parse the metadata
     # Print some statistics
     # Download the fastq
-    pass
+    metadata_file = get_required_metadata(args.study_id)
+    print metadata_file
 
 
 if __name__ == '__main__':
