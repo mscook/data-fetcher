@@ -97,14 +97,20 @@ def print_data_stats(urls):
 def download_files(ftp_data):
     """
     Use FTP to connect and download all files in given list
+    
+    :param ftp_data: a list of ftp server paths
+    :type ftp_data: list
     """
-    tmp =  ftp_data[0].split('/')
-    server = tmp[0]
-    location = '/'.join(tmp[1:])
-    ftp = ftplib.FTP(server, 'anonymous', 'm.stantoncook@gmail.com') 
-    files = ftp.dir()
-    #http://www.pythonforbeginners.com/code-snippets-source-code/how-to-use-ftp-in-python
-    print files
+    for url in ftp_data:
+        tmp =  url.split('/')
+        server = tmp[0]
+        location = '/'.join(tmp[1:])
+        fname = tmp[-1]
+        ftp = ftplib.FTP(server, 'anonymous', 'm.stantoncook@gmail.com') 
+        print "Getting %s " % (fname)
+
+        with open(fname, 'w') as out:
+            ftp.retrbinary('RETR ' + location, out.write)
 
 
 def core(args):
