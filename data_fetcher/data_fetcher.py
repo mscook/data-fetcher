@@ -17,7 +17,7 @@
 A tool to programatically mass download data from the ENA 
 """
 
-import sys, argparse, urllib2
+import sys, argparse, urllib2, ftplib
 
 
 def get_required_metadata(study_id):
@@ -94,10 +94,17 @@ def print_data_stats(urls):
     print "Will download paired reads for %i strains" % (len(urls)/2)
 
 
-def download_files():
+def download_files(ftp_data):
     """
+    Use FTP to connect and download all files in given list
     """
-    pass
+    tmp =  ftp_data[0].split('/')
+    server = tmp[0]
+    location = '/'.join(tmp[1:])
+    ftp = ftplib.FTP(server, 'anonymous', 'm.stantoncook@gmail.com') 
+    files = ftp.dir()
+    #http://www.pythonforbeginners.com/code-snippets-source-code/how-to-use-ftp-in-python
+    print files
 
 
 def core(args):
@@ -110,6 +117,7 @@ def core(args):
     metadata = get_required_metadata(args.study_id)
     rename, urls  = parse_meta_data(metadata)
     print_data_stats(urls)
+    download_files(urls)
 
 
 if __name__ == '__main__':
