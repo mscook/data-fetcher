@@ -20,12 +20,40 @@ A tool to programatically mass download data from the ENA
 import sys, argparse
 
 
+def get_required_metadata():
+    """
+    """
+    pass
+
+def parse_meta_data():
+    """
+    """
+    pass
+
+
+def print_data_stats():
+    """
+    """
+    pass
+
+
+def download_files():
+    """
+    """
+    pass
+
+
 def core(args):
     """
-    """
-    print "I'm working"
-    print args
+    The core function (accepts argparse and calls required)
 
+    :param args: an argparse object
+    """
+    # Download the required metadata
+    # Parse the metadata
+    # Print some statistics
+    # Download the fastq
+    pass
 
 
 if __name__ == '__main__':
