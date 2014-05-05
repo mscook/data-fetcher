@@ -17,4 +17,26 @@
 A tool to programatically mass download data from the ENA 
 """
 
+import sys, argparse
 
+
+def core(args):
+    """
+    """
+    print "I'm working"
+    print args
+
+
+
+if __name__ == '__main__':
+    try:
+        parser = argparse.ArgumentParser(description=
+                'Bulk downloader given SRA/ENA study accession',
+                epilog='Written by the Beatson Lab. http://www.beatsonlab.com')
+        parser.add_argument("study_id", help="A valid SRA/ENA accession")
+        parser.set_defaults(func=core)
+        args = parser.parse_args()
+        args.func(args)
+        sys.exit(0)
+    except:
+        pass
