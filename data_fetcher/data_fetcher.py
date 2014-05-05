@@ -27,7 +27,7 @@ def get_required_metadata(study_id):
     :param study_id: a valid SRA/ENA study id
     :type study_id: string
     
-    :returns: the txt formatted metadata info as a string
+    :returns: the txt formatted metadata info as a list
     """
     BASE = ("http://www.ebi.ac.uk/ena/data/warehouse/filereport?accession="
             "CURRENT&result=read_run&fields=study_accession,"
@@ -41,10 +41,48 @@ def get_required_metadata(study_id):
     # Turn into a list
     return response.read().split('\n')
 
-def parse_meta_data():
+
+def parse_meta_data(metadata_list):
     """
+    Extract out strain ID & ftp_links from a metadata list
+    
+    :param metadata: a metadata list as returned by
+                     get_required_metadata(study_id): 
+    :type metadata_list: list
+
+    :returns: 2 lists. First is a Banzai renaming file, 2 is a list of FTP
+              files to download
     """
-    pass
+    ftp_urls = []
+    rename   = []
+    # strip off header, skip blank last line
+    metadata_list = metadata_list[1:-1]
+    for ele in metadata_list:
+        cur = ele.split('\t')
+        # Get the strain ID - might be specific to this dataset. Please check
+        sid = cur[6].split()[-1]
+        if cur[8] == 'PAIRED':
+            # Get the read ftp URLs
+            r1, r2 = cur[9].split(';')
+            if r1.find("_1.fastq.gz") != -1:
+                tmp = sid+"_1.fastq.gz,"+r1.split('/')[-1]
+                rename.append(tmp)
+            else:
+                print "Read naming does not follow expected pattern"
+                sys.exit(1)
+            if r2.find("_2.fastq.gz") != -1:
+                tmp = sid+"_2.fastq.gz,"+r2.split('/')[-1]
+                rename.append(tmp)
+            else:
+                print "Read naming does not follow expected pattern"
+                sys.exit(1)
+            ftp_urls.append(r1)
+            ftp_urls.append(r2)
+        else:
+            print "Needs paired read files"
+            sys.exit(1)
+    return rename, ftp_urls
+        
 
 
 def print_data_stats():
@@ -68,8 +106,10 @@ def core(args):
     # Parse the metadata
     # Print some statistics
     # Download the fastq
-    metadata_file = get_required_metadata(args.study_id)
-    print metadata_file
+    metadata = get_required_metadata(args.study_id)
+    rename, urls  = parse_meta_data(metadata)
+    print rename
+    print urls
 
 
 if __name__ == '__main__':
