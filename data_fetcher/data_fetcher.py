@@ -35,7 +35,7 @@ def get_required_metadata(study_id):
             "secondary_sample_accession,experiment_accession,run_accession"
             ",scientific_name,instrument_model,library_layout,fastq_ftp"
             ",fastq_galaxy,submitted_ftp,submitted_galaxy,col_tax_id,"
-            "col_scientific_name,sra_ftp,sra_galaxy")
+            "col_scientific_name,sra_ftp,sra_galaxy,fastq_md5")
     BASE = BASE.replace('CURRENT', study_id)
     response = urllib2.urlopen(BASE)
     # Turn into a list
@@ -50,11 +50,12 @@ def parse_meta_data(metadata_list):
                      get_required_metadata(study_id): 
     :type metadata_list: list
 
-    :returns: 2 lists. First is a Banzai renaming file, 2 is a list of FTP
-              files to download
+    :returns: 3 lists. First is a Banzai renaming file, 2nd is md5 hases and
+              3rd is a list of FTP files to download
     """
     ftp_urls = []
     rename   = []
+    md5sum   = []
     # strip off header, skip blank last line
     metadata_list = metadata_list[1:-1]
     for ele in metadata_list:
@@ -64,15 +65,18 @@ def parse_meta_data(metadata_list):
         if cur[8] == 'PAIRED':
             # Get the read ftp URLs
             r1, r2 = cur[9].split(';')
+            c1, c2 = cur[-1].strip().split(';')
             if r1.find("_1.fastq.gz") != -1:
                 tmp = sid+"_1.fastq.gz,"+r1.split('/')[-1]
                 rename.append(tmp)
+                md5sum.append(c1+"\t"+r1.split('/')[-1])
             else:
                 print "Read naming does not follow expected pattern"
                 sys.exit(1)
             if r2.find("_2.fastq.gz") != -1:
                 tmp = sid+"_2.fastq.gz,"+r2.split('/')[-1]
                 rename.append(tmp)
+                md5sum.append(c2+"\t"+r2.split('/')[-1])
             else:
                 print "Read naming does not follow expected pattern"
                 sys.exit(1)
@@ -81,7 +85,7 @@ def parse_meta_data(metadata_list):
         else:
             print "Needs paired read files"
             sys.exit(1)
-    return rename, ftp_urls
+    return rename, md5sum, ftp_urls
 
 
 def print_data_stats(urls):
@@ -93,6 +97,15 @@ def print_data_stats(urls):
     # Assume paired
     print "Will download paired reads for %i strains" % (len(urls)/2)
 
+def build_files(rename, md5):
+    """
+    TODO: Document
+    """
+    with open("rename.dat", 'w') as f1, open ("checksums.md5", 'w') as f2:
+        for line in rename:
+            f1.write(line+"\n")
+        for line in md5:
+            f2.write(line+"\n")
 
 def download_files(ftp_data):
     """
@@ -121,8 +134,9 @@ def core(args):
     """
     # Download the fastq
     metadata = get_required_metadata(args.study_id)
-    rename, urls  = parse_meta_data(metadata)
+    rename, md5, urls  = parse_meta_data(metadata)
     print_data_stats(urls)
+    build_files(rename, md5)
     download_files(urls)
 
 
